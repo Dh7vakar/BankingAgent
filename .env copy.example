@@ -1,0 +1,41 @@
+# =====================================================================================
+#  LLM PROVIDER  (this is the ONLY place you normally need to edit to switch providers)
+# =====================================================================================
+# mock        offline, deterministic, no key needed (default)
+# anthropic   Claude API
+# openai | groq | gemini | openrouter | deepseek | mistral | together   (OpenAI-compatible APIs)
+# openai_compat   any other OpenAI-compatible server -> also set LLM_BASE_URL
+# ollama      local models
+LLM_PROVIDER=mock
+LLM_FALLBACK=ollama,mock
+
+# API key for the provider named above (any provider except mock/ollama)
+LLM_API_KEY=
+# Only for Claude you may use this instead of LLM_API_KEY:
+ANTHROPIC_API_KEY=
+
+# Model names exactly as your provider documents them. Router = cheap/fast model, Reasoning = stronger model.
+# Using one model for both is fine.
+ROUTER_MODEL=claude-haiku-5-5
+REASONING_MODEL=claude-sonnet-5-5
+
+# Optional provider tuning
+# LLM_BASE_URL=https://your-server/v1        # overrides the preset URL
+# LLM_MAX_TOKENS_PARAM=max_tokens            # use max_completion_tokens for models that require it
+# LLM_JSON_MODE=false                        # true = send response_format=json_object (if your provider supports it)
+# LLM_PRICE_IN=0.15                          # USD per 1M input tokens, for the cost dashboard
+# LLM_PRICE_OUT=0.60                         # USD per 1M output tokens
+
+# Local fallback (Ollama)
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.1
+
+# ---- Governance / limits ----
+HITL_TRANSFER_THRESHOLD=10000        # transfers >= this need human approval
+LOAN_HITL_THRESHOLD=50000            # loan approvals above this need an officer
+REQUEST_TOKEN_BUDGET=12000
+RATE_LIMIT_PER_MIN=60
+
+# ---- Simulation knobs ----
+SIM_FAILURE_RATE=0.05
+SIM_LATENCY_MS=20,120

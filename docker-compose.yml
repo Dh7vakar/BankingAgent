@@ -1,0 +1,14 @@
+# Optional. NOT exercised in the development environment that produced this project (no Docker available there).
+services:
+  api:
+    build: .
+    command: uvicorn app.api.main:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+    env_file: [.env.example]
+  ui:
+    build: .
+    ports: ["8501:8501"]
+    environment:
+      API_URL: http://api:8000      # UI talks to the API over HTTP instead of in-process
+    env_file: [.env.example]
+    depends_on: [api]
