@@ -1,5 +1,51 @@
 # Simulated Real-Time Banking Architecture with Multi-Agent Automation
+1. Project overview
+This project is a simulated banking assistant built with multiple AI agents. A customer or staff member sends a request through the chat interface. The system checks the request, routes it to the appropriate specialist agent or agents, and returns a response with trace and audit information.
+The project demonstrates common banking-system patterns such as access control, fraud checks, policy lookup, human approval, and monitoring. All customers, transactions, and external services are simulated; the app does not connect to a real bank or move real money.
+2. Architecture
+The system has several layers:
+1. User interface — Streamlit
+   Users select a persona, such as Customer, Relationship Manager, Call Center, or Fraud Analyst, and submit requests. The interface also displays responses, pending approvals, and agent traces.
+2. API and service layer — FastAPI and shared service code
+   FastAPI provides endpoints for chat, approvals, customer information, traces, audit logs, and metrics. The service layer contains shared application logic used by the API and the in-process UI.
+3. AI gateway and controls
+   Before a request is handled, the gateway masks sensitive information such as account numbers or SSNs, checks guardrails, and applies persona-based rules. It also manages model selection, fallback behavior, and token budgets.
+4. Supervisor and specialist agents
+   A LangGraph supervisor identifies the request’s intent, creates tasks, and selects one or more agents. Specialists handle customer accounts, fraud, credit and loans, compliance, products and policies, or notifications.
+5. Governed tools
+   Agents access banking functions through a shared tool registry. The registry validates inputs, checks permissions and customer ownership, applies approval requirements to write actions, and records tool activity.
+6. Data and simulated services
+   SQLite stores the synthetic customer, account, transaction, loan, and compliance data. Mock external services represent things such as credit bureau checks, payments, and KYC/AML screening.
+7. Policy knowledge — RAG
+   The retrieval component searches synthetic policy documents using keyword and TF-IDF search, combines the rankings, and reranks relevant sections. Responses can include citations to the source documents.
+8. Monitoring and evaluation
+   Traces show the path through the system. Audit logs record decisions and tool calls, while metrics track items such as latency, errors, tokens, and cost. An evaluation suite checks example requests.
+3. Request workflow
+A typical chat request follows this path:
+1. The user submits a message through the Streamlit UI or the API.
+2. The API or service assigns a trace ID and checks the session and rate limit.
+3. The gateway masks sensitive information and runs safety and persona checks. Requests that fail these checks are refused or blocked.
+4. The supervisor classifies the request. It uses the configured router model when available, with deterministic routing as a fallback.
+5. The planner chooses the required specialist agent or agents and orders their work. For example, a transfer request gets a risk check before the transfer step.
+6. The agents gather information or request actions through the governed tool registry. Permissions are checked again at tool-call time.
+7. If an action needs human approval, such as a qualifying transfer, the system saves it as pending rather than executing it.
+8. The supervisor combines the agent results. The response composer can rephrase the draft, while a grounding check prevents it from introducing unsupported numbers.
+9. The UI displays the response, citations, trace, and any approval prompt. If the user approves, the system executes the pending action, records the decision, and can trigger the notification agent.
+4. Example: suspicious transaction
+If a customer reports a suspicious charge, the supervisor routes the request to the Fraud Agent. The agent checks the simulated transaction and risk signals, then may recommend blocking the card. Because blocking a card changes account state, the system can ask for human approval before acting. After approval, the action is recorded and the Notification Agent can send a simulated notification.
+5. Example: loan question
+For a loan request, the Credit Agent checks the customer’s simulated credit profile and applies the project’s loan rules. The RAG component retrieves relevant sections from the loan policy, which the response can cite. If an action crosses the configured approval threshold, it can be sent for human review.
+6. Key design ideas
+- Specialized agents: Each agent handles a narrower banking task.
+- Controlled tool access: Agents use validated tools with permission and ownership checks.
+- Human approval: Sensitive write actions can wait for an explicit approval.
+- Grounded policy answers: RAG retrieves relevant synthetic policy sections and provides citations.
+- Traceability: Requests, decisions, and tool calls can be inspected through traces and audit logs.
+- Replaceable model provider: The gateway supports a mock provider for offline demos and configurable provider integrations.
+Short presentation summary
+“The application uses a Streamlit interface, a FastAPI and service layer, and a gateway that applies privacy, safety, and access controls. A LangGraph supervisor routes each request to specialist agents. Agents use banking tools through a permission-checked registry, consult policy documents through hybrid retrieval, and request human approval for actions that require it. The system records traces, audit events, and metrics. The data and services in this project are simulated, so it demonstrates the architecture without connecting to real banking systems.”
 
+For the detailed diagrams and implementation mapping, see [docs/architecture.md](C:/Users/Administrator/Downloads/banking-agents-comp/docs/architecture.md) and [README.md](C:/Users/Administrator/Downloads/banking-agents-comp/README.md).
 > **SIMULATED. Demo use only.** Every customer, account, transaction, loan, KYC/AML result and external service in this project is synthetic. No real banking system, data or money is involved.
 
 A complete, runnable MVP of a multi-agent AI banking assistant: a LangGraph **supervisor** routes requests to **six specialist agents** (Customer, Risk/Fraud, Credit/Loan, Compliance, Product/Policy, Notification) that act only through **governed tools**, with an **AI gateway** (PII masking, guardrails, prompt store, model routing, budget), **hybrid RAG** with citations, **human-in-the-loop approvals**, a **FastAPI** layer, a **Streamlit** UI with a live agent-trace panel, and an **evaluation suite**. It follows the 9-layer reference architecture in the assignment brief.
